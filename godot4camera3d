@@ -1,0 +1,53 @@
+extends Camera3D
+
+# The player node that the camera will follow and look at
+export(NodePath) var player_path
+onready var player = get_node(player_path)
+
+# The distance between the camera and the player
+export(float) var distance = 5.0
+
+# The sensitivity of the touch input
+export(float) var sensitivity = 0.01
+
+# The minimum and maximum angles for the camera pitch
+export(float) var min_pitch = -45.0
+export(float) var max_pitch = 45.0
+
+# The current yaw and pitch angles of the camera
+var yaw = 0.0
+var pitch = 0.0
+
+func _ready():
+# Set the initial position and rotation of the camera
+update_transform()
+
+func _input(event):
+# Check if the event is a touch screen event
+if event is InputEventScreenDrag:
+# Get the relative movement of the touch point
+var delta = event.relative
+
+# Update the yaw and pitch angles based on the movement and sensitivity
+yaw -= delta.x * sensitivity
+pitch -= delta.y * sensitivity
+
+# Clamp the pitch angle to the min and max values
+pitch = clamp(pitch, min_pitch, max_pitch)
+
+# Update the position and rotation of the camera
+update_transform()
+
+func update_transform():
+# Calculate the offset vector from the player based on the distance and angles
+var offset = Vector3(
+-sin(deg2rad(yaw)) * cos(deg2rad(pitch)),
+sin(deg2rad(pitch)),
+-cos(deg2rad(yaw)) * cos(deg2rad(pitch))
+) * distance
+
+# Set the global position of the camera to be the player position plus the offset
+global_transform.origin = player.global_transform.origin + offset
+
+# Make the camera look at the player position
+look_at(player.global_transform.origin, Vector3.UP)
